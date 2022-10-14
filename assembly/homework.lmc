@@ -4,4 +4,26 @@
 
 ;; CODE   =====================================
 
+        LDA POINTER
+LOOP    OUT
+        SUB END
+        BRP EXIT
+        LDA POINTER
+        ADD ONE
+        STA POINTER
+        BRA LOOP
+EXIT    HLT
+POINTER DAT 1
+END     DAT 10
+ONE     DAT 1
+
 ;; OUTPUT =====================================
+
+1  9
+2  10
+3
+4
+5
+6
+7
+8
