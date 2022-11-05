@@ -1,8 +1,25 @@
 #include "gtest/gtest.h"
 
-char * print_binary_representation(unsigned int i, char *buffer){
+char * print_binary_representation(unsigned int i, char *buffer)
+{
+
+    unsigned int j = 32;
+    unsigned int counter = 1;
+
     buffer[0] = '0';
     buffer[1] = 'b';
+
+    do {
+        j--;
+        counter++;
+
+        unsigned int mask = ((i & (1ull << j)) != 0);
+        printf("%d", ((i & (1ull << j)) != 0));
+        buffer[counter] = (char)mask;
+
+    } while (j != 0);
+    printf("\n");
+
     // fill out remaining 32 bits, 1 or 0 depending on the value in the number i
     return buffer;
 }
@@ -13,6 +30,7 @@ char * print_binary_representation(unsigned int i, char *buffer){
  *
  * The test below show what the expected values are for given inputs
  */
+
 TEST(print_binary_representation, works) {
     // row 1
     char buffer[50] = {0}; // init to 0
@@ -37,15 +55,17 @@ struct Person {
     int age;
 };
 
-void set_my_age(struct Person p) {
+int set_my_age(struct Person p) {
+
     p.age = 44;
+    return p.age;
 }
 
 int get_my_age() {
     struct Person me;
-    me.name = "Carson";
-    set_my_age(me);
-    return me.age;
+    //me.name = 'Carson';
+
+    return set_my_age(me);
 }
 
 TEST(set_my_age, works) {
