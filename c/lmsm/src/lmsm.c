@@ -9,10 +9,25 @@
 //  Instruction Implementation
 //======================================================
 
-void lmsm_i_call(lmsm *our_little_machine) {
+void lmsm_i_call(lmsm *our_little_machine)
+{
+    lmsm_stack *current = our_little_machine->accumulator;
+    lmsm_stack *new = malloc(sizeof(lmsm_stack));
+    new->value = 0;
+
+    our_little_machine->call_stack->value = our_little_machine->program_counter;
+    our_little_machine->program_counter = current->value;
+    our_little_machine->accumulator->value = new->value;
 }
 
-void lmsm_i_return(lmsm *our_little_machine) {
+void lmsm_i_return(lmsm *our_little_machine)
+{
+    lmsm_stack *current = our_little_machine->accumulator;
+    lmsm_stack *new = malloc(sizeof(lmsm_stack));
+    new->value = 0;
+
+    our_little_machine->program_counter = our_little_machine->call_stack->value;
+    our_little_machine->call_stack->value = new->value;
 }
 
 void lmsm_i_push(lmsm *our_little_machine)
@@ -24,21 +39,31 @@ void lmsm_i_push(lmsm *our_little_machine)
     our_little_machine->accumulator = new;
 }
 
-void lmsm_i_pop(lmsm *our_little_machine)
+void lmsm_i_pop(lmsm *our_little_machine) /* POP Function - May Produce Errors Later, do not know if everything should cause an error on POP. */
 {
-//    lmsm_stack *current = our_little_machine->accumulator;
-//    lmsm_stack *new = malloc(sizeof(lmsm_stack));
-//
-//    if (current == NULL)
-//    {
-//        our_little_machine->status = STATUS_HALTED;
-//        our_little_machine->error_code = ERROR_EMPTY_STACK;
-//    }
-//    else
-//    {
-//        new->value = current->next->value;
-//        our_little_machine->accumulator = new;
-//    }
+    lmsm_stack *current = our_little_machine->accumulator;
+    lmsm_stack *next = current->next;
+
+    if (current == NULL)
+    {
+        our_little_machine->status = STATUS_HALTED;
+        our_little_machine->error_code = ERROR_EMPTY_STACK;
+    }
+    else if(current != NULL && next == NULL)
+    {
+        our_little_machine->status = STATUS_HALTED;
+        our_little_machine->error_code = ERROR_EMPTY_STACK;
+    }
+
+    if (next != NULL && our_little_machine->status != STATUS_HALTED)
+    {
+        our_little_machine->accumulator = next;
+    }
+    else if(next == NULL && current == NULL)
+    {
+        our_little_machine->status = STATUS_HALTED;
+        our_little_machine->error_code = ERROR_EMPTY_STACK;
+    }
 
 }
 
@@ -184,16 +209,19 @@ void lmsm_i_sdiv(lmsm *our_little_machine)
 
 void lmsm_i_out(lmsm *our_little_machine)
 {
-    //int current_accum = our_little_machine->accumulator->value;
+    char tempBuffer[100];
+    snprintf(tempBuffer, (sizeof tempBuffer), "%d ", our_little_machine->accumulator->value);
+
+    strcat(our_little_machine->output_buffer, tempBuffer);
 }
 
 void lmsm_i_inp(lmsm *our_little_machine)
 {
-//    int input_value;
-//    printf("Enter an input value: ");
-//    scanf("%d", &input_value);
+    int input_value;
+    printf("Enter an input value: ");
+//    scanf("%d ", &input_value);
 //
-//    our_little_machine->accumulator->value = input_value;
+    our_little_machine->accumulator->value = input_value;
 }
 
 void lmsm_i_load(lmsm *our_little_machine, int location)
@@ -235,7 +263,7 @@ void lmsm_i_branch_unconditional(lmsm *our_little_machine, int location)
 
     if(our_little_machine->status != STATUS_HALTED)
     {
-        //our_little_machine->program_counter = our_little_machine->memory[location];
+        our_little_machine->program_counter = location;
     }
 }
 
@@ -247,7 +275,7 @@ void lmsm_i_branch_if_zero(lmsm *our_little_machine, int location)
     {
         if(current->value == 0)
         {
-
+            our_little_machine->program_counter = location;
         }
     }
 }
@@ -258,18 +286,25 @@ void lmsm_i_branch_if_positive(lmsm *our_little_machine, int location)
 
     if(our_little_machine->status != STATUS_HALTED)
     {
-        if(current->value > 0)
+        if(current->value >= 0)
         {
-
+            our_little_machine->program_counter = location;
         }
     }
 }
 
 void lmsm_cap_accumulator_value(lmsm *our_little_machine)
 {
-    lmsm_stack *current = our_little_machine->accumulator;
-    int current_accum = current->value;
+    int currentAccumVal = our_little_machine->accumulator->value;
 
+    if(currentAccumVal > 999)
+    {
+        our_little_machine->accumulator->value = 999;
+    }
+    if(currentAccumVal < -999)
+    {
+        our_little_machine->accumulator->value = -999;
+    }
 }
 
 void lmsm_step(lmsm *our_little_machine)
@@ -278,6 +313,7 @@ void lmsm_step(lmsm *our_little_machine)
     {
         int next_instruction = our_little_machine->memory[our_little_machine->program_counter];
         our_little_machine->program_counter++;
+
         our_little_machine->current_instruction = next_instruction;
         lmsm_exec_instruction(our_little_machine, next_instruction);
     }
