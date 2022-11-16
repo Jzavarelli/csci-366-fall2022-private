@@ -217,11 +217,12 @@ void lmsm_i_out(lmsm *our_little_machine)
 
 void lmsm_i_inp(lmsm *our_little_machine)
 {
-    int input_value;
+    int input;
+
     printf("Enter an input value: ");
-//    scanf("%d ", &input_value);
-//
-    our_little_machine->accumulator->value = input_value;
+    scanf("%d", &input);
+
+    our_little_machine->accumulator->value = input;
 }
 
 void lmsm_i_load(lmsm *our_little_machine, int location)

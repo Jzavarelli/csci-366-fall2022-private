@@ -508,7 +508,7 @@ TEST(code_generation, bad_label_causes_error) {
 TEST(end_to_end, bootstrap){
     /* get the first token */
     compilation_result *result = asm_assemble("INP OUT");
-    EXPECT_EQ( result->code[0], 901);
+    EXPECT_EQ(result->code[0], 901);
     EXPECT_EQ(result->code[1], 902);
     EXPECT_EQ(result->code[2], 0);
     asm_delete_compilation_result(result);
