@@ -113,25 +113,41 @@ int asm_instruction_requires_arg(char * token) {
     return 0;
 }
 
-int asm_is_num(char * token){
-    if (*token == '-') { // allow a leading negative
-        token++;
-    }
-    while (*token != '\0') {
-        if (*token < '0' || '9' < *token) {
-            return 0;
+int asm_is_num(char * token)
+{
+    if (token != NULL)
+    {
+        if (*token == '-')
+        { // allow a leading negative
+            token++;
         }
-        token++;
+        while (*token != '\0')
+        {
+            if (*token < '0' || '9' < *token)
+            {
+                return 0;
+            }
+            token++;
+        }
+        return 1;
     }
-    return 1;
+    else
+    {
+        return 0;
+    }
 }
 
 int asm_find_label(instruction *root, char *label)
 {
     // TODO - scan the linked list for the given label, return -1 if not found
-
-
-    return -1;
+    if (root->label == label)
+    {
+        return root->value;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 
@@ -139,8 +155,8 @@ int asm_find_label(instruction *root, char *label)
 // Assembly Parsing/Scanning
 //======================================================
 
-void asm_parse_src(compilation_result * result, char * original_src){
-
+void asm_parse_src(compilation_result * result, char * original_src)
+{
     // copy over so strtok can mutate
     char * src = calloc(strlen(original_src) + 1, sizeof(char));
     strcat(src, original_src);
@@ -153,7 +169,6 @@ void asm_parse_src(compilation_result * result, char * original_src){
 
     while (token != NULL)
     {
-
         // Handle Label
         char* label = NULL;
         if (!asm_is_instruction(token))
@@ -177,12 +192,37 @@ void asm_parse_src(compilation_result * result, char * original_src){
         // Handle Arguments
         int value = 0;
         char* label_reference = NULL;
-
-        if(asm_instruction_requires_arg(instruction))
+        if (asm_instruction_requires_arg(instruction))
         {
             token = strtok(NULL, " \n");
 
-            //asm_is_num();
+            if (!asm_is_num(token))
+            {
+                result->error = ASM_ERROR_ARG_REQUIRED;
+                return;
+            }
+            else
+            {
+                value = atoi(token);
+
+                if (value > 999)
+                {
+                    result->error = ASM_ERROR_OUT_OF_RANGE;
+                    return;
+                }
+                if(value < -999)
+                {
+                    result->error = ASM_ERROR_OUT_OF_RANGE;
+                    return;
+                }
+
+                token = strtok(NULL, " \n");
+            }
+
+        }
+        else
+        {
+            token = strtok(NULL, " \n");
         }
 
         current_instruction = asm_make_instruction(instruction, label, label_reference, value, last_instruction);
@@ -195,11 +235,10 @@ void asm_parse_src(compilation_result * result, char * original_src){
         else
         {
             result->root = last_instruction;
+            result->root->next = current_instruction;
         }
 
-        // Handle last_instruction to create linked list w/ current_instruction, set next to current instruction w/ last_instruction
-
-        token = strtok(NULL, " \n");
+        last_instruction = current_instruction;
     }
 
     //TODO - generate a linked list of instructions and store the first into
@@ -236,14 +275,10 @@ void asm_gen_code_for_instruction(compilation_result  * result, instruction *ins
     {
         value_for_instruction = asm_find_label(result->root, instruction->label_reference);
 
-        if (value_for_instruction = -1)
+        if (value_for_instruction == -1)
         {
             result->error = ASM_ERROR_BAD_LABEL;
             return;
-        }
-        else
-        {
-            result->code[instruction->offset] = value_for_instruction;
         }
     }
 
