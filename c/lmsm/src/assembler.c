@@ -1,5 +1,6 @@
 //
 // Created by carson on 11/15/21.
+// Finished by Jace Zavarelli 11/21/2022
 //
 
 #include "assembler.h"
@@ -46,6 +47,7 @@ instruction * asm_make_instruction(char* type, char *label, char *label_referenc
     new_instruction->label_reference = label_reference;
     new_instruction->value = value;
     new_instruction->next = NULL;
+
     if (predecessor != NULL)
     {
         predecessor->next = new_instruction;
@@ -74,20 +76,25 @@ instruction * asm_make_instruction(char* type, char *label, char *label_referenc
     return new_instruction;
 }
 
-void asm_delete_instruction(instruction *instruction) {
-    if (instruction == NULL) {
+void asm_delete_instruction(instruction *instruction)
+{
+    if (instruction == NULL)
+    {
         return;
     }
+
     asm_delete_instruction(instruction->next);
     free(instruction);
 }
 
-compilation_result * asm_make_compilation_result() {
+compilation_result * asm_make_compilation_result()
+{
     compilation_result *result = calloc(1, sizeof(compilation_result));
     return result;
 }
 
-void asm_delete_compilation_result(compilation_result *result) {
+void asm_delete_compilation_result(compilation_result *result)
+{
     asm_delete_instruction(result->root);
     free(result);
 }
@@ -95,21 +102,29 @@ void asm_delete_compilation_result(compilation_result *result) {
 //======================================================
 // Helpers
 //======================================================
-int asm_is_instruction(char * token) {
-    for (int i = 0; i < INSTRUCTION_COUNT; ++i) {
-        if (strcmp(token, INSTRUCTIONS[i]) == 0) {
+int asm_is_instruction(char * token)
+{
+    for (int i = 0; i < INSTRUCTION_COUNT; ++i)
+    {
+        if (strcmp(token, INSTRUCTIONS[i]) == 0)
+        {
             return 1;
         }
     }
+
     return 0;
 }
 
-int asm_instruction_requires_arg(char * token) {
-    for (int i = 0; i < ARG_INSTRUCTION_COUNT; ++i) {
-        if (strcmp(token, ARG_INSTRUCTIONS[i]) == 0) {
+int asm_instruction_requires_arg(char * token)
+{
+    for (int i = 0; i < ARG_INSTRUCTION_COUNT; ++i)
+    {
+        if (strcmp(token, ARG_INSTRUCTIONS[i]) == 0)
+        {
             return 1;
         }
     }
+
     return 0;
 }
 
@@ -129,6 +144,7 @@ int asm_is_num(char * token)
             }
             token++;
         }
+
         return 1;
     }
     else
@@ -139,10 +155,10 @@ int asm_is_num(char * token)
 
 int asm_find_label(instruction *root, char *label)
 {
-    // TODO - scan the linked list for the given label, return -1 if not found
-    if (root->label == label)
+    // COMPLETE - scan the linked list for the given label, return -1 if not found
+    if (root->next->label == label)
     {
-        return root->value;
+        return root->next->value;
     }
     else
     {
@@ -198,6 +214,11 @@ void asm_parse_src(compilation_result * result, char * original_src)
 
             if (!asm_is_num(token))
             {
+                label_reference = token;
+            }
+
+            if ((!asm_is_num(token)) && (label_reference == NULL))
+            {
                 result->error = ASM_ERROR_ARG_REQUIRED;
                 return;
             }
@@ -222,6 +243,7 @@ void asm_parse_src(compilation_result * result, char * original_src)
         }
         else
         {
+
             token = strtok(NULL, " \n");
         }
 
@@ -241,7 +263,7 @@ void asm_parse_src(compilation_result * result, char * original_src)
         last_instruction = current_instruction;
     }
 
-    //TODO - generate a linked list of instructions and store the first into
+    //COMPLETE - generate a linked list of instructions and store the first into
     //       the result->root
     //
     //       generate the following errors as appropriate:
@@ -261,7 +283,7 @@ void asm_parse_src(compilation_result * result, char * original_src)
 void asm_gen_code_for_instruction(compilation_result  * result, instruction *instruction)
 {
 
-    //TODO - generate the machine code for the given instruction
+    //COMPLETE - generate the machine code for the given instruction
     //
     // note that some instructions will take up multiple slots
     //
@@ -389,9 +411,11 @@ void asm_gen_code_for_instruction(compilation_result  * result, instruction *ins
 }
 
 // We do not worry about this function.
-void asm_gen_code(compilation_result * result) {
+void asm_gen_code(compilation_result * result)
+{
     instruction * current = result->root;
-    while (current != NULL) {
+    while (current != NULL)
+    {
         asm_gen_code_for_instruction(result, current);
         current = current->next;
     }
@@ -401,9 +425,11 @@ void asm_gen_code(compilation_result * result) {
 // Main API -> We do not worry about this function.
 //======================================================
 
-compilation_result * asm_assemble(char *src) {
+compilation_result * asm_assemble(char *src)
+{
     compilation_result * result = asm_make_compilation_result();
     asm_parse_src(result, src);
     asm_gen_code(result);
+
     return result;
 }
