@@ -71,6 +71,7 @@ void lmsm_i_dup(lmsm *our_little_machine)
 {
     lmsm_stack *current = our_little_machine->accumulator;
     lmsm_stack *new = malloc(sizeof(lmsm_stack));
+
     new->value = current->value;
     new->next = current;
     our_little_machine->accumulator = new;
@@ -322,6 +323,7 @@ void lmsm_cap_accumulator_value(lmsm *our_little_machine)
     {
         our_little_machine->accumulator->value = 999;
     }
+
     if(currentAccumVal < -999)
     {
         our_little_machine->accumulator->value = -999;
